@@ -43,7 +43,7 @@ commands:
     steps:
       - run:
           name: Install build tools
-          command: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config wget
+          command: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget
           # Disable brew auto update which is very slow
   load_conda_channel_flags:
     description: "Determines whether we need extra conda channels"
@@ -148,7 +148,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: third_party
-      - run: packaging/build_wheel.sh
+      - run: |
+          yum install -y ffmpeg ffmpeg-devel
+          packaging/build_wheel.sh
       - store_artifacts:
           path: dist
       - persist_to_workspace:
@@ -192,6 +194,7 @@ jobs:
             curl -o conda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
             sh conda.sh -b
             source $HOME/miniconda3/bin/activate
+            conda install -yq ffmpeg pkg-config wget
             packaging/build_wheel.sh
       - store_artifacts:
           path: dist
@@ -215,7 +218,7 @@ jobs:
             curl -o conda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
             sh conda.sh -b
             source $HOME/miniconda3/bin/activate
-            conda install -yq conda-build
+            conda install -yq conda-build ffmpeg pkg-config wget
             packaging/build_conda.sh
       - store_artifacts:
           path: /Users/distiller/miniconda3/conda-bld/osx-64
@@ -238,6 +241,7 @@ jobs:
             set -ex
             eval "$('/C/tools/miniconda3/Scripts/conda.exe' 'shell.bash' 'hook')"
             conda activate base
+            conda install pkg-config
             bash packaging/build_wheel.sh
       - store_artifacts:
           path: dist

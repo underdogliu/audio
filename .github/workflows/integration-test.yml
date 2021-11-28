@@ -23,6 +23,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install packages
       run: |
+        sudo apt install -y -q ffmpeg pkg-config libavcodec-dev libavfilter-dev libavformat-dev libavdevice-dev libavutil-dev
         python -m pip install --quiet --upgrade pip
         python -m pip install --quiet --pre torch -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
         python -m pip install --quiet pytest requests cmake ninja deep-phonemizer

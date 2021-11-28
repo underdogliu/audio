@@ -43,6 +43,7 @@ fi
 
 # 2. Install torchaudio
 printf "* Installing torchaudio\n"
+export BUILD_FFMPEG=1
 "$root_dir/packaging/vc_env_helper.bat" python setup.py install
 
 # 3. Install Test tools
