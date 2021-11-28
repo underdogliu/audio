@@ -1,0 +1,190 @@
+#include <torch/script.h>
+#include <torchaudio/csrc/ffmpeg/streamer.h>
+
+namespace torchaudio {
+namespace ffmpeg {
+
+namespace {
+
+struct StreamerHolder : torch::CustomClassHolder {
+  Streamer s;
+  StreamerHolder(const std::string& src) : s(src) {}
+};
+
+using S = c10::intrusive_ptr<StreamerHolder>;
+
+S init(const std::string& src) {
+  return c10::make_intrusive<StreamerHolder>(src);
+}
+
+using SrcInfo = std::tuple<
+    std::string, // media_type
+    std::string, // codec name
+    std::string, // codec long name
+    std::string, // format name
+    int64_t, // bit_rate
+    // Audio
+    double, // sample_rate
+    int64_t, // num_channels
+    // Video
+    int64_t, // width
+    int64_t, // height
+    double // frame_rate
+    >;
+
+SrcInfo convert(SrcStreamInfo ssi) {
+  return SrcInfo(std::forward_as_tuple(
+      av_get_media_type_string(ssi.media_type),
+      ssi.codec_name,
+      ssi.codec_long_name,
+      ssi.fmt_name,
+      ssi.bit_rate,
+      ssi.sample_rate,
+      ssi.num_channels,
+      ssi.width,
+      ssi.height,
+      ssi.frame_rate));
+}
+
+SrcInfo get_src_stream_info(S s, int64_t i) {
+  return convert(s->s.get_src_stream_info(i));
+}
+
+using OutInfo = std::tuple<
+    int64_t, // source index
+    int64_t>;
+
+OutInfo convert(OutputStreamInfo osi) {
+  return OutInfo(std::forward_as_tuple(osi.source_index, 0));
+}
+
+OutInfo get_out_stream_info(S s, int64_t i) {
+  return convert(s->s.get_out_stream_info(i));
+}
+
+int64_t num_src_streams(S s) {
+  return s->s.num_src_streams();
+}
+
+int64_t num_out_streams(S s) {
+  return s->s.num_out_streams();
+}
+
+int64_t find_best_audio_stream(S s) {
+  return s->s.find_best_audio_stream();
+}
+
+int64_t find_best_video_stream(S s) {
+  return s->s.find_best_video_stream();
+}
+
+void add_audio_stream(
+    S s,
+    int64_t i,
+    c10::optional<int64_t> sample_rate,
+    c10::optional<c10::ScalarType> dtype) {
+  AVSampleFormat fmt = [&]() {
+    if (!dtype)
+      return AV_SAMPLE_FMT_NONE;
+    switch (dtype.value()) {
+      case c10::ScalarType::Byte:
+        return AV_SAMPLE_FMT_U8P;
+      case c10::ScalarType::Short:
+        return AV_SAMPLE_FMT_S16P;
+      case c10::ScalarType::Int:
+        return AV_SAMPLE_FMT_S32P;
+      case c10::ScalarType::Long:
+        return AV_SAMPLE_FMT_S64P;
+      case c10::ScalarType::Float:
+        return AV_SAMPLE_FMT_FLTP;
+      case c10::ScalarType::Double:
+        return AV_SAMPLE_FMT_DBLP;
+      default:
+        throw std::runtime_error("Unexpected dtype.");
+    }
+  }();
+  s->s.add_audio_stream(i, sample_rate.value_or(-1), fmt);
+}
+
+void add_video_stream(
+    S s,
+    int64_t i,
+    c10::optional<int64_t> width,
+    c10::optional<int64_t> height,
+    c10::optional<double> frame_rate,
+    c10::optional<std::string> format) {
+  // TODO:
+  // Check other useful formats
+  // https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
+  AVPixelFormat fmt = [&]() {
+    if (!format)
+      return AV_PIX_FMT_NONE;
+    std::string val = format.value();
+    if (val == "RGB")
+      return AV_PIX_FMT_RGB24;
+    if (val == "BGR")
+      return AV_PIX_FMT_BGR24;
+    if (val == "GRAY")
+      return AV_PIX_FMT_GRAY8;
+    throw std::runtime_error("Unexpected format: " + val);
+  }();
+  s->s.add_video_stream(
+      i, width.value_or(-1), height.value_or(-1), frame_rate.value_or(-1), fmt);
+}
+
+void remove_stream(S s, int64_t i) {
+  s->s.remove_stream(i);
+}
+
+int64_t process_packet(S s) {
+  return s->s.process_packet();
+}
+
+int64_t process_all_packets(S s) {
+  return s->s.process_all_packets();
+}
+
+std::vector<torch::Tensor> get_chunks(S s) {
+  return s->s.get_chunks();
+}
+
+std::tuple<torch::Tensor, int64_t> load(const std::string& src) {
+  Streamer s{src};
+  int i = s.find_best_audio_stream();
+  auto sinfo = s.get_src_stream_info(i);
+  int64_t sample_rate = static_cast<int64_t>(sinfo.sample_rate);
+  s.add_audio_stream(i, -1, AV_SAMPLE_FMT_NONE);
+  s.process_all_packets();
+  auto tensors = s.get_chunks();
+  return std::make_tuple<>(tensors[0], sample_rate);
+}
+
+TORCH_LIBRARY_FRAGMENT(torchaudio, m) {
+  m.def("torchaudio::ffmpeg_init", []() {
+    // avdevice_register_all();
+    avfilter_register_all();
+  });
+  m.def("torchaudio::ffmpeg_load", load);
+  m.class_<StreamerHolder>("ffmpeg_Streamer");
+  m.def("torchaudio::ffmpeg_streamer_init", init);
+  m.def("torchaudio::ffmpeg_streamer_num_src_streams", num_src_streams);
+  m.def("torchaudio::ffmpeg_streamer_num_out_streams", num_out_streams);
+  m.def("torchaudio::ffmpeg_streamer_get_src_stream_info", get_src_stream_info);
+  m.def("torchaudio::ffmpeg_streamer_get_out_stream_info", get_out_stream_info);
+  m.def(
+      "torchaudio::ffmpeg_streamer_find_best_audio_stream",
+      find_best_audio_stream);
+  m.def(
+      "torchaudio::ffmpeg_streamer_find_best_video_stream",
+      find_best_video_stream);
+  m.def("torchaudio::ffmpeg_streamer_add_audio_stream", add_audio_stream);
+  m.def("torchaudio::ffmpeg_streamer_add_video_stream", add_video_stream);
+  m.def("torchaudio::ffmpeg_streamer_remove_stream", remove_stream);
+  m.def("torchaudio::ffmpeg_streamer_process_packet", process_packet);
+  m.def("torchaudio::ffmpeg_streamer_process_all_packets", process_all_packets);
+  m.def("torchaudio::ffmpeg_streamer_get_chunks", get_chunks);
+}
+
+} // namespace
+} // namespace ffmpeg
+} // namespace torchaudio
