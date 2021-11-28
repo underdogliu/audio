@@ -37,6 +37,7 @@ def _get_build(var, default=False):
 _BUILD_SOX = False if platform.system() == 'Windows' else _get_build("BUILD_SOX", True)
 _BUILD_KALDI = False if platform.system() == 'Windows' else _get_build("BUILD_KALDI", True)
 _BUILD_RNNT = _get_build("BUILD_RNNT", True)
+_BUILD_FFMPEG = _get_build("BUILD_FFMPEG", True)
 _USE_ROCM = _get_build("USE_ROCM", torch.cuda.is_available() and torch.version.hip is not None)
 _USE_CUDA = _get_build("USE_CUDA", torch.cuda.is_available() and torch.version.hip is None)
 _USE_OPENMP = _get_build("USE_OPENMP", True) and \
@@ -45,10 +46,13 @@ _TORCH_CUDA_ARCH_LIST = os.environ.get('TORCH_CUDA_ARCH_LIST', None)
 
 
 def get_ext_modules():
-    return [
+    mods = [
         Extension(name='torchaudio.lib.libtorchaudio', sources=[]),
         Extension(name='torchaudio._torchaudio', sources=[]),
     ]
+    if _BUILD_FFMPEG:
+        mods.append(Extension(name='torchaudio.lib.libtorchaudio_ffmpeg', sources=[]))
+    return mods
 
 
 # Based off of
@@ -87,6 +91,7 @@ class CMakeBuild(build_ext):
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             f"-DPython_INCLUDE_DIR={distutils.sysconfig.get_python_inc()}",
             f"-DBUILD_SOX:BOOL={'ON' if _BUILD_SOX else 'OFF'}",
+            f"-DBUILD_FFMPEG:BOOL={'ON' if _BUILD_FFMPEG else 'OFF'}",
             f"-DBUILD_KALDI:BOOL={'ON' if _BUILD_KALDI else 'OFF'}",
             f"-DBUILD_RNNT:BOOL={'ON' if _BUILD_RNNT else 'OFF'}",
             "-DBUILD_TORCHAUDIO_PYTHON_EXTENSION:BOOL=ON",

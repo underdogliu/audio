@@ -14,6 +14,26 @@ if (BUILD_SOX)
 endif()
 
 ################################################################################
+# ffmpeg
+################################################################################
+if (BUILD_FFMPEG)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
+    libavdevice
+    libavfilter
+    libavformat
+    libavcodec
+    libswresample
+    libswscale
+    libavutil
+    )
+  add_library(ffmpeg INTERFACE)
+  target_include_directories(ffmpeg INTERFACE ${LIBAV_INCLUDE_DIRS})
+  target_link_libraries(ffmpeg INTERFACE ${LIBAV_LINK_LIBRARIES})
+  list(APPEND TORCHAUDIO_THIRD_PARTIES ffmpeg)
+endif()
+
+################################################################################
 # kaldi
 ################################################################################
 if (BUILD_KALDI)
