@@ -5,10 +5,7 @@ namespace torchaudio {
 namespace ffmpeg {
 
 class FilterGraph {
-<<<<<<< HEAD
-=======
   AVMediaType media_type = AVMEDIA_TYPE_UNKNOWN;
->>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
   AVFilterGraphPtr pFilterGraph;
   // AVFilterContext is freed as a part of AVFilterGraph
   // so we do not manage the resource.
@@ -16,14 +13,10 @@ class FilterGraph {
   AVFilterContext* buffersink_ctx = NULL;
 
  public:
-<<<<<<< HEAD
-  FilterGraph() = default;
-=======
   FilterGraph(
       AVRational time_base,
       AVCodecParameters* codecpar,
       const std::string& filter_desc);
->>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
   // Custom destructor to release AVFilterGraph*
   ~FilterGraph() = default;
   // Non-copyable
@@ -34,32 +27,11 @@ class FilterGraph {
   FilterGraph& operator=(FilterGraph&&) = default;
 
   //////////////////////////////////////////////////////////////////////////////
-<<<<<<< HEAD
-  // Low-level configuration methods
-  //////////////////////////////////////////////////////////////////////////////
-  void add_audio_src(
-      AVRational time_base,
-      int sample_rate,
-      AVSampleFormat sample_fmt,
-      uint64_t channel_layout);
-
-  void add_video_src(
-      int width,
-      int height,
-      AVPixelFormat pix_fmt,
-      AVRational time_base,
-      AVRational sample_aspect_ratio);
-
-  void add_audio_sink();
-
-  void add_video_sink();
-=======
   // Configuration methods
   //////////////////////////////////////////////////////////////////////////////
   void add_src(AVRational time_base, AVCodecParameters* codecpar);
 
   void add_sink();
->>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
 
   void add_process(std::string filter_desc);
 

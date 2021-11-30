@@ -117,20 +117,6 @@ int Streamer::find_best_video_stream() const {
 ////////////////////////////////////////////////////////////////////////////////
 // Configure methods
 ////////////////////////////////////////////////////////////////////////////////
-<<<<<<< HEAD
-void Streamer::add_audio_stream(int i, int sample_rate, AVSampleFormat fmt) {
-  validate_src_stream_type(i, AVMEDIA_TYPE_AUDIO);
-  AVStream* stream = pFormatContext->streams[i];
-  stream->discard = AVDISCARD_DEFAULT;
-  if (!processors[i])
-    processors[i] = std::make_unique<StreamProcessor>(stream->codecpar);
-  int key = processors[i]->add_audio_stream(
-      stream->codecpar, stream->time_base, fmt, sample_rate);
-  stream_indices.push_back(std::make_pair<>(i, key));
-}
-
-void Streamer::add_video_stream(
-=======
 namespace {
 template <typename... Args>
 std::string string_format(const std::string& format, Args... args) {
@@ -211,15 +197,11 @@ void Streamer::add_basic_audio_stream(
 }
 
 void Streamer::add_basic_video_stream(
->>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
     int i,
     int width,
     int height,
     double frame_rate,
     AVPixelFormat fmt) {
-<<<<<<< HEAD
-  validate_src_stream_type(i, AVMEDIA_TYPE_VIDEO);
-=======
   std::string filter_desc = get_vfilter_desc(width, height, frame_rate, fmt);
   add_custom_video_stream(i, filter_desc, frame_rate);
 }
@@ -244,18 +226,12 @@ void Streamer::add_custom_stream(
     const std::string& filter_desc,
     double rate) {
   validate_src_stream_type(i, media_type);
->>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
   AVStream* stream = pFormatContext->streams[i];
   stream->discard = AVDISCARD_DEFAULT;
   if (!processors[i])
     processors[i] = std::make_unique<StreamProcessor>(stream->codecpar);
-<<<<<<< HEAD
-  int key = processors[i]->add_video_stream(
-      stream->codecpar, stream->time_base, fmt, width, height, frame_rate);
-=======
   int key = processors[i]->add_stream(
       stream->time_base, stream->codecpar, filter_desc, rate);
->>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
   stream_indices.push_back(std::make_pair<>(i, key));
 }
 
@@ -279,17 +255,6 @@ void Streamer::remove_stream(int i) {
 ////////////////////////////////////////////////////////////////////////////////
 // Stream methods
 ////////////////////////////////////////////////////////////////////////////////
-<<<<<<< HEAD
-int Streamer::process_packet() {
-  int ret = av_read_frame(pFormatContext, pPacket);
-  if (ret < 0)
-    return 1;
-  AutoPacketUnref packet{pPacket};
-  int i = pPacket->stream_index;
-  if (!processors[i])
-    return 0;
-  return processors[i]->process_packet(packet);
-=======
 // Note
 // return value (to be finalized)
 // 0: caller should keep calling this function
@@ -322,7 +287,6 @@ int Streamer::drain() {
     }
   }
   return ret;
->>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
 }
 
 int Streamer::process_all_packets() {
