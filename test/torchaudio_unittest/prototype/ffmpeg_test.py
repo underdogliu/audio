@@ -44,10 +44,17 @@ class FFmpegStreamerTest(TempDirMixin, TorchaudioTestCase):
 
     def test_out_info(self):
         s = ffmpeg.Streamer(path)
+<<<<<<< HEAD
         s.add_audio_stream(0, 8000)
         s.add_audio_stream(0, 16000)
         s.add_video_stream(1, 32, 32, 30)
         s.add_video_stream(1, 16, 16, 10)
+=======
+        s.add_basic_audio_stream(0, 8000)
+        s.add_basic_audio_stream(0, 16000)
+        s.add_basic_video_stream(1, 32, 32, 30)
+        s.add_basic_video_stream(1, 16, 16, 10)
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
 
         sinfo = [s.get_out_stream_info(i) for i in range(s.num_out_streams)]
         assert sinfo[0].source_index == 0
@@ -57,17 +64,30 @@ class FFmpegStreamerTest(TempDirMixin, TorchaudioTestCase):
 
     def test_modify_stream(self):
         s = ffmpeg.Streamer(path)
+<<<<<<< HEAD
         s.add_audio_stream(0, 8000)
         s.add_audio_stream(0, 16000)
         s.add_video_stream(1, 32, 32, 30)
         s.add_video_stream(1, 16, 16, 10)
+=======
+        s.add_basic_audio_stream(0, 8000)
+        s.add_basic_audio_stream(0, 16000)
+        s.add_basic_video_stream(1, 32, 32, 30)
+        s.add_basic_video_stream(1, 16, 16, 10)
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
         s.remove_stream(3)
         s.remove_stream(2)
         s.remove_stream(1)
         s.remove_stream(0)
+<<<<<<< HEAD
         s.add_audio_stream(0, 8000)
         s.remove_stream(0)
         s.add_audio_stream(0, 8000)
+=======
+        s.add_basic_audio_stream(0, 8000)
+        s.remove_stream(0)
+        s.add_basic_audio_stream(0, 8000)
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
         # TODO: Add invalid operations
 
     def _save_wav(self, data, sample_rate):
@@ -77,9 +97,14 @@ class FFmpegStreamerTest(TempDirMixin, TorchaudioTestCase):
 
     def _test_wav(self, path, original, dtype):
         s = ffmpeg.Streamer(path)
+<<<<<<< HEAD
         s.add_audio_stream(0, dtype=dtype)
         for _ in s:
             pass
+=======
+        s.add_basic_audio_stream(0, dtype=dtype)
+        s.process_all_packets()
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
         output = s.get_chunks()[0].T
         # print(output)
         self.assertEqual(original, output)
@@ -106,6 +131,24 @@ class FFmpegStreamerTest(TempDirMixin, TorchaudioTestCase):
         # use the internal dtype ffmpeg picks
         self._test_wav(path, original, None)
 
+<<<<<<< HEAD
+=======
+    def test_custom_audio_stream(self):
+        original = torch.randint(low=-32768, high=32767, size=[3, 15], dtype=torch.int16)
+        path = self._save_wav(original, 8000)
+        expected = torch.flip(original, dims=(1, ))
+
+        s = ffmpeg.Streamer(path)
+        s.add_custom_audio_stream(0, "areverse")
+        s.process_all_packets()
+        output = s.get_chunks()[0].T
+        # print(output)
+        print("original:", original)
+        print("expected:", expected)
+        print("output:", output)
+        self.assertEqual(expected, output)
+
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
     def _save_png(self, data):
         path = self.get_temp_path("test.png")
         img = Image.fromarray(data.numpy())
@@ -114,7 +157,11 @@ class FFmpegStreamerTest(TempDirMixin, TorchaudioTestCase):
 
     def _test_png(self, path, original, format):
         s = ffmpeg.Streamer(path)
+<<<<<<< HEAD
         s.add_video_stream(0, format=format)
+=======
+        s.add_basic_video_stream(0, format=format)
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
         s.process_all_packets()
         output = s.get_chunks()[0]
         self.assertEqual(original, output)
@@ -128,6 +175,11 @@ class FFmpegStreamerTest(TempDirMixin, TorchaudioTestCase):
         self._test_png(path, expected, format=None)
 
     def test_png_color(self):
+<<<<<<< HEAD
+=======
+        # TODO:
+        # Add test with alpha channel (RGBA, ARGB, BGRA, ABGR)
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
         c, h, w = 3, 111, 250
         original = torch.arange(c * h * w, dtype=torch.int64).reshape(c, h, w) % 256
         original = original.to(torch.uint8)
@@ -139,8 +191,13 @@ class FFmpegStreamerTest(TempDirMixin, TorchaudioTestCase):
         s = ffmpeg.Streamer(path)
         i = s.find_best_video_stream()
         sinfo = s.get_src_stream_info(i)
+<<<<<<< HEAD
         s.add_video_stream(i, frame_rate=5, format="RGB")
         s.add_video_stream(
+=======
+        s.add_basic_video_stream(i, frame_rate=5, format="RGB")
+        s.add_basic_video_stream(
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
             i, frame_rate=5, width=sinfo.width//2, height=sinfo.height//2, format="RGB")
         for _ in s:
             pass
@@ -158,14 +215,24 @@ class FFmpegStreamerTest(TempDirMixin, TorchaudioTestCase):
         print(f"Configuring audio stream {i}")
         sinfo = s.get_src_stream_info(i)
         sample_rate = sinfo.sample_rate * 2
+<<<<<<< HEAD
         s.add_audio_stream(i, sample_rate=int(sample_rate))
+=======
+        s.add_basic_audio_stream(i, sample_rate=int(sample_rate))
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
         print(s.get_src_stream_info(i))
         i = s.find_best_video_stream()
         print(f"Configuring video stream {i}")
         sinfo = s.get_src_stream_info(i)
+<<<<<<< HEAD
         s.add_video_stream(
             i, width=sinfo.width * 2, height=sinfo.height * 2, frame_rate=sinfo.frame_rate * 2. + 0.1)
         s.add_video_stream(
+=======
+        s.add_basic_video_stream(
+            i, width=sinfo.width * 2, height=sinfo.height * 2, frame_rate=sinfo.frame_rate * 2. + 0.1)
+        s.add_basic_video_stream(
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
             i, width=sinfo.width // 2, height=sinfo.height // 2, frame_rate=sinfo.frame_rate / 2. - 0.1)
         print(s.get_src_stream_info(i))
         for _ in s:
@@ -183,7 +250,11 @@ class FFmpegStreamerTest(TempDirMixin, TorchaudioTestCase):
         s = ffmpeg.Streamer(path)
         i = s.find_best_audio_stream()
         sinfo = s.get_src_stream_info(i)
+<<<<<<< HEAD
         s.add_audio_stream(i, sample_rate=int(sinfo.sample_rate))
+=======
+        s.add_basic_audio_stream(i, sample_rate=int(sinfo.sample_rate))
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
         for _ in s:
             pass
         for chunk in s.get_chunks():

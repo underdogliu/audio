@@ -143,6 +143,10 @@ if(BUILD_FFMPEG)
     ffmpeg/ffmpeg.cpp
     ffmpeg/filter_graph.cpp
     ffmpeg/buffer.cpp
+<<<<<<< HEAD
+=======
+    ffmpeg/sink.cpp
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
     ffmpeg/stream_processor.cpp
     ffmpeg/streamer.cpp
     )

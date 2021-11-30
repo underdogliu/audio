@@ -57,20 +57,50 @@ class Streamer {
   //////////////////////////////////////////////////////////////////////////////
   // Enable stream - with filtering
   // TODO add necessary parameters
+<<<<<<< HEAD
   void add_audio_stream(int i, int sample_rate, AVSampleFormat fmt);
   void add_video_stream(
+=======
+  void add_basic_audio_stream(int i, int sample_rate, AVSampleFormat fmt);
+  void add_basic_video_stream(
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
       int i,
       int width,
       int height,
       double frame_rate,
       AVPixelFormat fmt);
+<<<<<<< HEAD
   void remove_stream(int i);
 
+=======
+  void add_custom_audio_stream(
+      int i,
+      const std::string& filter_desc,
+      double rate);
+  void add_custom_video_stream(
+      int i,
+      const std::string& filter_desc,
+      double rate);
+  void remove_stream(int i);
+
+ private:
+  void add_custom_stream(
+      int i,
+      AVMediaType media_type,
+      const std::string& filter_desc,
+      double rate);
+
+ public:
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
   //////////////////////////////////////////////////////////////////////////////
   // Stream methods
   //////////////////////////////////////////////////////////////////////////////
   int process_packet();
   int process_all_packets();
+<<<<<<< HEAD
+=======
+  int drain();
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
 
   //////////////////////////////////////////////////////////////////////////////
   // Retrieval

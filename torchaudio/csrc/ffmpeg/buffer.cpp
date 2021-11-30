@@ -1,4 +1,8 @@
 #include <torchaudio/csrc/ffmpeg/buffer.h>
+<<<<<<< HEAD
+=======
+#include <stdexcept>
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
 #include <vector>
 
 namespace torchaudio {
@@ -10,7 +14,11 @@ namespace {
 torch::Tensor convert_audio_tensor(AVFrame* pFrame) {
   // ref: https://ffmpeg.org/doxygen/4.1/filter__audio_8c_source.html#l00215
   AVSampleFormat format = static_cast<AVSampleFormat>(pFrame->format);
+<<<<<<< HEAD
   int num_channels = av_get_channel_layout_nb_channels(pFrame->channel_layout);
+=======
+  int num_channels = pFrame->channels;
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
   int bps = av_get_bytes_per_sample(format);
 
   // Note
@@ -102,6 +110,15 @@ torch::Tensor convert_image_tensor(AVFrame* pFrame) {
     case AV_PIX_FMT_BGR24:
       channel = 3;
       break;
+<<<<<<< HEAD
+=======
+    case AV_PIX_FMT_ARGB:
+    case AV_PIX_FMT_RGBA:
+    case AV_PIX_FMT_ABGR:
+    case AV_PIX_FMT_BGRA:
+      channel = 4;
+      break;
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
     case AV_PIX_FMT_GRAY8:
       channel = 1;
       break;
@@ -139,5 +156,21 @@ torch::Tensor Buffer::pop_all() {
   return torch::cat(tmp, 0);
 }
 
+<<<<<<< HEAD
+=======
+void Buffer::push_frame(AVFrame* frame) {
+  switch (media_type) {
+    case AVMEDIA_TYPE_AUDIO:
+      push_audio_frame(frame);
+      break;
+    case AVMEDIA_TYPE_VIDEO:
+      push_video_frame(frame);
+      break;
+    default:
+      throw std::runtime_error(
+          "Unexpected media type. Only audio/video is supported.");
+  }
+}
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
 } // namespace ffmpeg
 } // namespace torchaudio

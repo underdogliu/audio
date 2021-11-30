@@ -78,7 +78,11 @@ int64_t find_best_video_stream(S s) {
   return s->s.find_best_video_stream();
 }
 
+<<<<<<< HEAD
 void add_audio_stream(
+=======
+void add_basic_audio_stream(
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
     S s,
     int64_t i,
     c10::optional<int64_t> sample_rate,
@@ -103,10 +107,17 @@ void add_audio_stream(
         throw std::runtime_error("Unexpected dtype.");
     }
   }();
+<<<<<<< HEAD
   s->s.add_audio_stream(i, sample_rate.value_or(-1), fmt);
 }
 
 void add_video_stream(
+=======
+  s->s.add_basic_audio_stream(i, sample_rate.value_or(-1), fmt);
+}
+
+void add_basic_video_stream(
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
     S s,
     int64_t i,
     c10::optional<int64_t> width,
@@ -128,10 +139,33 @@ void add_video_stream(
       return AV_PIX_FMT_GRAY8;
     throw std::runtime_error("Unexpected format: " + val);
   }();
+<<<<<<< HEAD
   s->s.add_video_stream(
       i, width.value_or(-1), height.value_or(-1), frame_rate.value_or(-1), fmt);
 }
 
+=======
+  s->s.add_basic_video_stream(
+      i, width.value_or(-1), height.value_or(-1), frame_rate.value_or(-1), fmt);
+}
+
+void add_custom_audio_stream(
+    S s,
+    int64_t i,
+    const std::string& filter_desc,
+    c10::optional<double> rate) {
+  s->s.add_custom_audio_stream(i, filter_desc, rate.value_or(-1));
+}
+
+void add_custom_video_stream(
+    S s,
+    int64_t i,
+    const std::string& filter_desc,
+    c10::optional<double> rate) {
+  s->s.add_custom_video_stream(i, filter_desc, rate.value_or(-1));
+}
+
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
 void remove_stream(S s, int64_t i) {
   s->s.remove_stream(i);
 }
@@ -153,7 +187,11 @@ std::tuple<torch::Tensor, int64_t> load(const std::string& src) {
   int i = s.find_best_audio_stream();
   auto sinfo = s.get_src_stream_info(i);
   int64_t sample_rate = static_cast<int64_t>(sinfo.sample_rate);
+<<<<<<< HEAD
   s.add_audio_stream(i, -1, AV_SAMPLE_FMT_NONE);
+=======
+  s.add_basic_audio_stream(i, -1, AV_SAMPLE_FMT_NONE);
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
   s.process_all_packets();
   auto tensors = s.get_chunks();
   return std::make_tuple<>(tensors[0], sample_rate);
@@ -177,8 +215,23 @@ TORCH_LIBRARY_FRAGMENT(torchaudio, m) {
   m.def(
       "torchaudio::ffmpeg_streamer_find_best_video_stream",
       find_best_video_stream);
+<<<<<<< HEAD
   m.def("torchaudio::ffmpeg_streamer_add_audio_stream", add_audio_stream);
   m.def("torchaudio::ffmpeg_streamer_add_video_stream", add_video_stream);
+=======
+  m.def(
+      "torchaudio::ffmpeg_streamer_add_basic_audio_stream",
+      add_basic_audio_stream);
+  m.def(
+      "torchaudio::ffmpeg_streamer_add_basic_video_stream",
+      add_basic_video_stream);
+  m.def(
+      "torchaudio::ffmpeg_streamer_add_custom_audio_stream",
+      add_custom_audio_stream);
+  m.def(
+      "torchaudio::ffmpeg_streamer_add_custom_video_stream",
+      add_custom_video_stream);
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
   m.def("torchaudio::ffmpeg_streamer_remove_stream", remove_stream);
   m.def("torchaudio::ffmpeg_streamer_process_packet", process_packet);
   m.def("torchaudio::ffmpeg_streamer_process_all_packets", process_all_packets);

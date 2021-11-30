@@ -1,11 +1,26 @@
 #include <torchaudio/csrc/ffmpeg/stream_processor.h>
+<<<<<<< HEAD
+=======
+#include "libavutil/frame.h"
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
 
 namespace torchaudio {
 namespace ffmpeg {
 
 using KeyType = StreamProcessor::KeyType;
 
+<<<<<<< HEAD
 Sink::Sink(AVMediaType media_type) : buffer(media_type) {}
+=======
+Sink::Sink(
+    AVRational input_time_base,
+    AVCodecParameters* codecpar,
+    const std::string& filter_description,
+    double output_time_base)
+    : filter(input_time_base, codecpar, filter_description),
+      buffer(codecpar->codec_type),
+      time_base(output_time_base) {}
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
 
 StreamProcessor::StreamProcessor(AVCodecParameters* codecpar)
     : media_type(codecpar->codec_type), decoder(codecpar) {}
@@ -13,11 +28,27 @@ StreamProcessor::StreamProcessor(AVCodecParameters* codecpar)
 ////////////////////////////////////////////////////////////////////////////////
 // Configurations
 ////////////////////////////////////////////////////////////////////////////////
+<<<<<<< HEAD
 KeyType StreamProcessor::init_stream(AVMediaType media_type) {
+=======
+KeyType StreamProcessor::add_stream(
+    AVRational input_time_base,
+    AVCodecParameters* codecpar,
+    const std::string& filter_description,
+    double output_rate) {
+  switch (codecpar->codec_type) {
+    case AVMEDIA_TYPE_AUDIO:
+    case AVMEDIA_TYPE_VIDEO:
+      break;
+    default:
+      throw std::runtime_error("Only Audio and Video are supported");
+  }
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
   KeyType key = current_key++;
   sinks.emplace(
       std::piecewise_construct,
       std::forward_as_tuple(key),
+<<<<<<< HEAD
       std::forward_as_tuple(media_type));
   return key;
 }
@@ -181,6 +212,14 @@ KeyType StreamProcessor::add_video_stream(
       out_fmt);
   s.time_base = (frame_rate > 0) ? 1 / frame_rate : av_q2d(time_base);
   decoder_time_base = av_q2d(time_base);
+=======
+      std::forward_as_tuple(
+          input_time_base,
+          codecpar,
+          filter_description,
+          (output_rate > 0) ? 1 / output_rate : av_q2d(input_time_base)));
+  decoder_time_base = av_q2d(input_time_base);
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
   return key;
 }
 
@@ -188,6 +227,12 @@ void StreamProcessor::remove_stream(KeyType key) {
   sinks.erase(key);
 }
 
+<<<<<<< HEAD
+=======
+////////////////////////////////////////////////////////////////////////////////
+// The streaming process
+////////////////////////////////////////////////////////////////////////////////
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
 namespace {
 void debug_print_frame(AVFrame* pFrame, double time_rate) {
   if (pFrame->sample_rate)
@@ -210,6 +255,7 @@ void debug_print_frame(AVFrame* pFrame, double time_rate) {
 }
 } // namespace
 
+<<<<<<< HEAD
 ////////////////////////////////////////////////////////////////////////////////
 // The streaming process
 ////////////////////////////////////////////////////////////////////////////////
@@ -252,6 +298,38 @@ int StreamProcessor::process_packet(AVPacket* packet) {
     }
   }
   return 0;
+=======
+// 0: some kind of success
+// <0: Some error happened
+int StreamProcessor::process_packet(AVPacket* packet) {
+  int ret = decoder.process_packet(packet);
+  while (ret >= 0) {
+    ret = decoder.get_frame(pFrame1);
+    //  AVERROR(EAGAIN) means that new input data is required to return new
+    //  output.
+    if (ret == AVERROR(EAGAIN))
+      return 0;
+    if (ret == AVERROR_EOF)
+      return send_frame(NULL);
+    if (ret < 0)
+      return ret;
+    send_frame(pFrame1);
+    av_frame_unref(pFrame1);
+  }
+  return ret;
+}
+
+// 0: some kind of success
+// <0: Some error happened
+int StreamProcessor::send_frame(AVFrame* pFrame) {
+  int ret = 0;
+  for (auto& ite : sinks) {
+    int ret2 = ite.second.process_frame(pFrame);
+    if (ret2 < 0)
+      ret = ret2;
+  }
+  return ret;
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
 }
 
 ////////////////////////////////////////////////////////////////////////////////

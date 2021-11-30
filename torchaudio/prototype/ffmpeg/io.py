@@ -94,17 +94,29 @@ class Streamer:
     def find_best_video_stream(self):
         return torch.ops.torchaudio.ffmpeg_streamer_find_best_video_stream(self._s)
 
+<<<<<<< HEAD
     def add_audio_stream(
+=======
+    def add_basic_audio_stream(
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
         self,
         i: int,
         sample_rate: Optional[int] = None,
         dtype: Optional[torch.dtype] = torch.float32,
     ):
+<<<<<<< HEAD
         torch.ops.torchaudio.ffmpeg_streamer_add_audio_stream(
             self._s, i, sample_rate, dtype
         )
 
     def add_video_stream(
+=======
+        torch.ops.torchaudio.ffmpeg_streamer_add_basic_audio_stream(
+            self._s, i, sample_rate, dtype
+        )
+
+    def add_basic_video_stream(
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
         self,
         i: int,
         width: Optional[int] = None,
@@ -112,10 +124,37 @@ class Streamer:
         frame_rate: Optional[int] = None,
         format: Optional[str] = "RGB",
     ):
+<<<<<<< HEAD
         torch.ops.torchaudio.ffmpeg_streamer_add_video_stream(
             self._s, i, width, height, frame_rate, format,
         )
 
+=======
+        torch.ops.torchaudio.ffmpeg_streamer_add_basic_video_stream(
+            self._s, i, width, height, frame_rate, format,
+        )
+
+    def add_custom_audio_stream(
+        self,
+        i: int,
+        filter_desc: str,
+        rate: Optional[float] = None,
+    ):
+        torch.ops.torchaudio.ffmpeg_streamer_add_custom_audio_stream(
+            self._s, i, filter_desc, rate
+        )
+
+    def add_custom_video_stream(
+        self,
+        i: int,
+        filter_desc: str,
+        rate: Optional[float] = None,
+    ):
+        torch.ops.torchaudio.ffmpeg_streamer_add_custom_video_stream(
+            self._s, i, filter_desc, rate
+        )
+
+>>>>>>> 248ae94c5670b9d85882067b148ba41f95bc9b43
     def remove_stream(self, i: int):
         torch.ops.torchaudio.ffmpeg_streamer_remove_stream(self._s, i)
 
